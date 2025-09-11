@@ -105,8 +105,31 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+lazy_static::lazy_static! {
+    pub static ref RENDEZVOUS_SERVERS: RwLock<Vec<String>> = RwLock::new({
+        let s = option_env!("RENDEZVOUS_SERVERS").unwrap_or_default();
+        if s.is_empty() {
+            vec![
+                "".to_owned(),
+            ]
+        } else {
+            s
+                .split(',')
+                .filter(|x| x.contains('.'))
+                .map(|x| x.to_owned())
+                .collect()
+        }
+    });
+
+    pub static ref RS_PUB_KEY: RwLock<String> = RwLock::new({
+        let pk = option_env!("RS_PUB_KEY").unwrap_or_default();
+        if pk.is_empty() {
+            "".to_owned()
+        } else {
+            pk.to_owned()
+        }
+    });
+}
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -787,7 +810,7 @@ impl Config {
                 return ss;
             }
         }
-        return RENDEZVOUS_SERVERS.iter().map(|x| x.to_string()).collect();
+        return RENDEZVOUS_SERVERS.read().unwrap().clone();
     }
 
     pub fn reset_online() {
@@ -2509,7 +2532,7 @@ pub mod keys {
     pub const OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION: &str = "allow-remote-config-modification";
     pub const OPTION_ALLOW_NUMERNIC_ONE_TIME_PASSWORD: &str = "allow-numeric-one-time-password";
     pub const OPTION_ENABLE_LAN_DISCOVERY: &str = "enable-lan-discovery";
-    pub const OPTION_DIRECT_SERVER: &str = "direct-server";
+    pub const OPTION_DIRECT_SERVER: &str = "enable-direct-server";
     pub const OPTION_DIRECT_ACCESS_PORT: &str = "direct-access-port";
     pub const OPTION_WHITELIST: &str = "whitelist";
     pub const OPTION_ALLOW_AUTO_DISCONNECT: &str = "allow-auto-disconnect";
