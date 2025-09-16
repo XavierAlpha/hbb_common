@@ -250,7 +250,7 @@ pub fn get_empty_dirs_recursive(
 
 #[inline]
 pub fn is_file_exists(file_path: &str) -> bool {
-    return Path::new(file_path).exists();
+    Path::new(file_path).exists()
 }
 
 #[inline]
@@ -259,16 +259,11 @@ pub fn can_enable_overwrite_detection(version: i64) -> bool {
 }
 
 #[repr(i32)]
-#[derive(Copy, Clone, Serialize, Debug, PartialEq)]
+#[derive(Copy, Clone, Serialize, Debug, PartialEq, Default)]
 pub enum JobType {
+    #[default]
     Generic = 0,
     Printer = 1,
-}
-
-impl Default for JobType {
-    fn default() -> Self {
-        JobType::Generic
-    }
 }
 
 impl From<JobType> for file_transfer_send_request::FileType {
@@ -290,9 +285,9 @@ impl From<i32> for JobType {
     }
 }
 
-impl Into<i32> for JobType {
-    fn into(self) -> i32 {
-        self as i32
+impl From<JobType> for i32 {
+    fn from(val: JobType) -> Self {
+        val as i32
     }
 }
 
@@ -736,14 +731,15 @@ impl TransferJob {
                 }
             }
         }
-        if self.r#type == JobType::Generic {
-            if self.enable_overwrite_detection && !self.file_confirmed() {
-                if !self.file_is_waiting() {
-                    self.send_current_digest(stream).await?;
-                    self.set_file_is_waiting(true);
-                }
-                return Ok(None);
+        if self.r#type == JobType::Generic
+            && self.enable_overwrite_detection
+            && !self.file_confirmed()
+        {
+            if !self.file_is_waiting() {
+                self.send_current_digest(stream).await?;
+                self.set_file_is_waiting(true);
             }
+            return Ok(None);
         }
         const BUF_SIZE: usize = 128 * 1024;
         let mut buf: Vec<u8> = vec![0; BUF_SIZE];
@@ -1194,8 +1190,8 @@ pub fn rename_file(path: &str, new_name: &str) -> ResultType<()> {
         let dir = path
             .parent()
             .ok_or(anyhow!("Parent directoy of {path:?} not exists"))?;
-        let new_path = dir.join(&new_name);
-        std::fs::rename(&path, &new_path)?;
+        let new_path = dir.join(new_name);
+        std::fs::rename(path, &new_path)?;
         Ok(())
     } else {
         bail!("{path:?} not exists");
