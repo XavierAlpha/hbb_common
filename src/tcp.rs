@@ -210,6 +210,55 @@ impl FramedStream {
     }
 }
 
+// Stream Trait
+impl futures::Stream for FramedStream {
+    type Item = Result<BytesMut, io::Error>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match Pin::new(&mut self.0).poll_next(cx) {
+            Poll::Ready(Some(Ok(mut bytes))) => {
+                if let Some(encrypt) = self.2.as_mut() {
+                    if let Err(e) = encrypt.dec(&mut bytes) {
+                        return Poll::Ready(Some(Err(e)));
+                    }
+                }
+                Poll::Ready(Some(Ok(bytes)))
+            }
+            other => other,
+        }
+    }
+}
+
+// Sink Trait
+impl futures::Sink<crate::rendezvous_proto::RendezvousMessage> for FramedStream {
+    type Error = io::Error;
+
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut self.0).poll_ready(cx)
+    }
+
+    fn start_send(
+        mut self: Pin<&mut Self>,
+        item: crate::rendezvous_proto::RendezvousMessage,
+    ) -> Result<(), Self::Error> {
+        let mut bytes = item
+            .write_to_bytes()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        if let Some(encrypt) = self.2.as_mut() {
+            bytes = encrypt.enc(&bytes);
+        }
+        Pin::new(&mut self.0).start_send(Bytes::from(bytes))
+    }
+
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut self.0).poll_flush(cx)
+    }
+
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut self.0).poll_close(cx)
+    }
+}
+
 const DEFAULT_BACKLOG: u32 = 128;
 
 pub async fn new_listener<T: ToSocketAddrs>(addr: T, reuse: bool) -> ResultType<TcpListener> {
