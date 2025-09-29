@@ -2003,8 +2003,9 @@ impl UserDefaultConfig {
             keys::OPTION_CODEC_PREFERENCE => {
                 self.get_string(key, "auto", vec!["vp8", "vp9", "av1", "h264", "h265"])
             }
-            keys::OPTION_CUSTOM_IMAGE_QUALITY => self.get_num_string(key, 50.0, 10.0, 0xFFF as f64),
-            keys::OPTION_CUSTOM_FPS => self.get_num_string(key, 30.0, 5.0, 120.0),
+            keys::OPTION_CUSTOM_IMAGE_QUALITY => self.get_num_string(key, 100.0, 10.0, 0xFFF as f64),
+            keys::OPTION_CUSTOM_FPS => self.get_num_string(key, 60.0, 5.0, 120.0),
+            keys::OPTION_SHOW_REMOTE_CURSOR => self.get_string(key, "Y", vec!["", "N"]),
             keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
             keys::OPTION_EDGE_SCROLL_EDGE_THICKNESS => self.get_num_string(key, 100, 20, 150),
             keys::OPTION_TRACKPAD_SPEED => self.get_num_string(key, 100, 10, 1000),
@@ -2453,7 +2454,7 @@ pub fn option2bool(option: &str, value: &str) -> bool {
         value != "N"
     } else if option.starts_with("allow-")
         || option == "stop-service"
-        || option == keys::OPTION_DIRECT_SERVER
+        || option == keys::OPTION_ENABLE_DIRECT_SERVER
         || option == "force-always-relay"
     {
         value == "Y"
@@ -2476,7 +2477,7 @@ pub mod keys {
     pub const OPTION_VIEW_ONLY: &str = "view_only";
     pub const OPTION_SHOW_MONITORS_TOOLBAR: &str = "show_monitors_toolbar";
     pub const OPTION_COLLAPSE_TOOLBAR: &str = "collapse_toolbar";
-    pub const OPTION_SHOW_REMOTE_CURSOR: &str = "enable-show_remote_cursor";
+    pub const OPTION_SHOW_REMOTE_CURSOR: &str = "show_remote_cursor";
     pub const OPTION_FOLLOW_REMOTE_CURSOR: &str = "follow_remote_cursor";
     pub const OPTION_FOLLOW_REMOTE_WINDOW: &str = "follow_remote_window";
     pub const OPTION_ZOOM_CURSOR: &str = "zoom-cursor";
@@ -2512,7 +2513,7 @@ pub mod keys {
         "enable-open-new-connections-in-tabs";
     pub const OPTION_TEXTURE_RENDER: &str = "use-texture-render";
     pub const OPTION_ALLOW_D3D_RENDER: &str = "allow-d3d-render";
-    pub const OPTION_ENABLE_CHECK_UPDATE: &str = "allow-check-update";
+    pub const OPTION_ALLOW_CHECK_UPDATE: &str = "allow-check-update";
     pub const OPTION_ALLOW_AUTO_UPDATE: &str = "allow-auto-update";
     pub const OPTION_SYNC_AB_WITH_RECENT_SESSIONS: &str = "sync-ab-with-recent-sessions";
     pub const OPTION_SYNC_AB_TAGS: &str = "sync-ab-tags";
@@ -2532,7 +2533,7 @@ pub mod keys {
     pub const OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION: &str = "allow-remote-config-modification";
     pub const OPTION_ALLOW_NUMERNIC_ONE_TIME_PASSWORD: &str = "allow-numeric-one-time-password";
     pub const OPTION_ENABLE_LAN_DISCOVERY: &str = "enable-lan-discovery";
-    pub const OPTION_DIRECT_SERVER: &str = "enable-direct-server";
+    pub const OPTION_ENABLE_DIRECT_SERVER: &str = "enable-direct-server";
     pub const OPTION_DIRECT_ACCESS_PORT: &str = "direct-access-port";
     pub const OPTION_WHITELIST: &str = "whitelist";
     pub const OPTION_ALLOW_AUTO_DISCONNECT: &str = "allow-auto-disconnect";
@@ -2729,7 +2730,7 @@ pub mod keys {
         OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION,
         OPTION_ALLOW_NUMERNIC_ONE_TIME_PASSWORD,
         OPTION_ENABLE_LAN_DISCOVERY,
-        OPTION_DIRECT_SERVER,
+        OPTION_ENABLE_DIRECT_SERVER,
         OPTION_DIRECT_ACCESS_PORT,
         OPTION_WHITELIST,
         OPTION_ALLOW_AUTO_DISCONNECT,
