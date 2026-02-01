@@ -238,6 +238,14 @@ impl WsFramedStream {
     }
 
     #[inline]
+    pub fn is_tls(&self) -> bool {
+        matches!(
+            self.stream.get_ref(),
+            MaybeTlsStream::NativeTls(_) | MaybeTlsStream::Rustls(_)
+        )
+    }
+
+    #[inline]
     pub async fn send(&mut self, msg: &impl Message) -> ResultType<()> {
         self.send_raw(msg.write_to_bytes()?).await
     }
