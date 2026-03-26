@@ -790,7 +790,6 @@ impl TransferJob {
             if self.enable_overwrite_detection && !self.file_confirmed() {
                 return Ok(None);
             }
-            return Ok(None);
         }
 
         let file_num = self.file_num as usize;
