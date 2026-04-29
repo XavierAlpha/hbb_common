@@ -130,6 +130,15 @@ lazy_static::lazy_static! {
             pk.to_owned()
         }
     });
+
+    pub static ref API_SERVER: RwLock<String> = RwLock::new({
+        let api = option_env!("API_SERVER").unwrap_or_default().trim();
+        if api.is_empty() {
+            "".to_owned()
+        } else {
+            api.to_owned()
+        }
+    });
 }
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
