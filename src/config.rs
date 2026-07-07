@@ -98,7 +98,8 @@ lazy_static::lazy_static! {
 }
 
 pub const LINK_DOCS_HOME: &str = "https://camellia.aimmv.com/docs/en/";
-pub const LINK_DOCS_X11_REQUIRED: &str = "https://camellia.aimmv.com/docs/en/manual/linux/#x11-required";
+pub const LINK_DOCS_X11_REQUIRED: &str =
+    "https://camellia.aimmv.com/docs/en/manual/linux/#x11-required";
 pub const LINK_HEADLESS_LINUX_SUPPORT: &str =
     "https://github.com/CamelliaCorp/camellia/wiki/Headless-Linux-Support";
 
@@ -121,13 +122,12 @@ lazy_static::lazy_static! {
     pub static ref RENDEZVOUS_SERVERS: RwLock<Vec<String>> = RwLock::new({
         let s = option_env!("RENDEZVOUS_SERVERS").unwrap_or_default();
         if s.is_empty() {
-            vec![
-                "".to_owned(),
-            ]
+            Vec::new()
         } else {
             s
                 .split(',')
-                .filter(|x| x.contains('.'))
+                .map(str::trim)
+                .filter(|x| !x.is_empty())
                 .map(|x| x.to_owned())
                 .collect()
         }
@@ -959,7 +959,7 @@ impl Config {
                 .next()
                 .unwrap_or_default();
         }
-        if !rendezvous_server.contains(':') {
+        if !rendezvous_server.is_empty() && !rendezvous_server.contains(':') {
             rendezvous_server = format!("{rendezvous_server}:{RENDEZVOUS_PORT}");
         }
         rendezvous_server
@@ -2407,7 +2407,9 @@ impl UserDefaultConfig {
             keys::OPTION_CODEC_PREFERENCE => {
                 self.get_string(key, "auto", vec!["vp8", "vp9", "av1", "h264", "h265"])
             }
-            keys::OPTION_CUSTOM_IMAGE_QUALITY => self.get_num_string(key, 100.0, 10.0, 0xFFF as f64),
+            keys::OPTION_CUSTOM_IMAGE_QUALITY => {
+                self.get_num_string(key, 100.0, 10.0, 0xFFF as f64)
+            }
             keys::OPTION_CUSTOM_FPS => self.get_num_string(key, 60.0, 5.0, 120.0),
             keys::OPTION_SHOW_REMOTE_CURSOR => self.get_string(key, "Y", vec!["", "N"]),
             keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
