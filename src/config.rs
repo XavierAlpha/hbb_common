@@ -2858,9 +2858,8 @@ pub fn is_disable_installation() -> bool {
     is_some_hard_opton("disable-installation")
 }
 
-// This function must be kept the same as the one in flutter and sciter code.
+// This function must be kept the same as the Flutter implementation.
 // flutter: flutter/lib/common.dart -> option2bool()
-// sciter: Does not have the function, but it should be kept the same.
 pub fn option2bool(option: &str, value: &str) -> bool {
     if option.starts_with("enable-") {
         value != "N"
