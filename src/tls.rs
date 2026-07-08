@@ -5,7 +5,6 @@ use crate::config::allow_insecure_tls_fallback;
 #[derive(Debug, Clone, Copy)]
 pub enum TlsType {
     Plain,
-    NativeTls,
     Rustls,
 }
 
