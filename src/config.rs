@@ -2554,7 +2554,7 @@ pub struct AbEntry {
 
 impl AbEntry {
     pub fn personal(&self) -> bool {
-        self.name == "My address book" || self.name == "Legacy address book"
+        self.guid.starts_with("personal-")
     }
 }
 
@@ -2845,12 +2845,12 @@ pub fn is_disable_settings() -> bool {
 
 #[inline]
 pub fn is_disable_ab() -> bool {
-    is_some_hard_opton("disable-ab")
+    false
 }
 
 #[inline]
 pub fn is_disable_account() -> bool {
-    is_some_hard_opton("disable-account")
+    false
 }
 
 #[inline]
@@ -2876,11 +2876,6 @@ pub fn option2bool(option: &str, value: &str) -> bool {
 
 pub fn use_ws() -> bool {
     let option = keys::OPTION_ALLOW_WEBSOCKET;
-    option2bool(option, &Config::get_option(option))
-}
-
-pub fn allow_insecure_tls_fallback() -> bool {
-    let option = keys::OPTION_ALLOW_INSECURE_TLS_FALLBACK;
     option2bool(option, &Config::get_option(option))
 }
 
@@ -2998,7 +2993,6 @@ pub mod keys {
     /// - If unset, negative, or non-integer, no explicit limit is enforced for backward compatibility.
     pub const OPTION_FILE_TRANSFER_MAX_FILES: &str = "file-transfer-max-files";
     pub const OPTION_DISABLE_UDP: &str = "disable-udp";
-    pub const OPTION_ALLOW_INSECURE_TLS_FALLBACK: &str = "allow-insecure-tls-fallback";
     pub const OPTION_SHOW_VIRTUAL_MOUSE: &str = "show-virtual-mouse";
     // joystick is the virtual mouse.
     // So `OPTION_SHOW_VIRTUAL_MOUSE` should also be set if `OPTION_SHOW_VIRTUAL_JOYSTICK` is set.
@@ -3076,7 +3070,6 @@ pub mod keys {
     pub const OPTION_KEEP_AWAKE_DURING_OUTGOING_SESSIONS: &str =
         "keep-awake-during-outgoing-sessions";
 
-    pub const OPTION_DISABLE_GROUP_PANEL: &str = "disable-group-panel";
     pub const OPTION_DISABLE_DISCOVERY_PANEL: &str = "disable-discovery-panel";
     pub const OPTION_PRE_ELEVATE_SERVICE: &str = "pre-elevate-service";
 
@@ -3148,7 +3141,6 @@ pub mod keys {
         OPTION_KEEP_SCREEN_ON,
         // Client-side: keep client system awake during outgoing sessions (General setting)
         OPTION_KEEP_AWAKE_DURING_OUTGOING_SESSIONS,
-        OPTION_DISABLE_GROUP_PANEL,
         OPTION_DISABLE_DISCOVERY_PANEL,
         OPTION_PRE_ELEVATE_SERVICE,
         OPTION_ALLOW_REMOTE_CM_MODIFICATION,
@@ -3218,7 +3210,6 @@ pub mod keys {
         OPTION_RELAY_SERVER,
         OPTION_ICE_SERVERS,
         OPTION_DISABLE_UDP,
-        OPTION_ALLOW_INSECURE_TLS_FALLBACK,
         OPTION_KEEP_AWAKE_DURING_INCOMING_SESSIONS,
         OPTION_ALLOW_AUTO_UPDATE,
     ];

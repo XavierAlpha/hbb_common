@@ -6,11 +6,10 @@ use crate::{
     socket_client::split_host_port,
     sodiumoxide::crypto::secretbox::Key,
     tcp::Encrypt,
-    tls::{get_cached_tls_accept_invalid_cert, get_cached_tls_type, upsert_tls_cache, TlsType},
+    tls::{get_cached_tls_type, upsert_tls_cache, TlsType},
     ResultType,
 };
 use anyhow::bail;
-use async_recursion::async_recursion;
 use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use std::{
@@ -36,14 +35,11 @@ pub struct WsFramedStream {
 
 impl WsFramedStream {
     #[inline]
-    fn get_connector(
-        tls_type: &TlsType,
-        danger_accept_invalid_certs: bool,
-    ) -> ResultType<Option<Connector>> {
+    fn get_connector(tls_type: &TlsType) -> ResultType<Option<Connector>> {
         match tls_type {
             TlsType::Plain => Ok(Some(Connector::Plain)),
             TlsType::Rustls => {
-                let connector = match crate::verifier::client_config(danger_accept_invalid_certs) {
+                let connector = match crate::verifier::client_config() {
                     Ok(client_config) => Some(Connector::Rustls(Arc::new(client_config))),
                     Err(e) => {
                         log::warn!(
@@ -65,36 +61,21 @@ impl WsFramedStream {
         // to-do: websocket proxy.
 
         let tls_type = get_cached_tls_type(url);
-        let is_tls_type_cached = tls_type.is_some();
         let tls_type = tls_type.unwrap_or(TlsType::Rustls);
-        let danger_accept_invalid_cert = get_cached_tls_accept_invalid_cert(&url);
-        Self::try_connect(
-            url,
-            ms_timeout,
-            tls_type,
-            is_tls_type_cached,
-            danger_accept_invalid_cert,
-            danger_accept_invalid_cert,
-        )
-        .await
+        Self::try_connect(url, ms_timeout, tls_type).await
     }
 
-    #[async_recursion]
     async fn try_connect(
         url: &str,
         ms_timeout: u64,
         tls_type: TlsType,
-        is_tls_type_cached: bool,
-        danger_accept_invalid_cert: Option<bool>,
-        original_danger_accept_invalid_certs: Option<bool>,
     ) -> ResultType<WebSocketStream<MaybeTlsStream<TcpStream>>> {
         let ws_config = None;
         let disable_nagle = false;
         let request = url
             .into_client_request()
             .map_err(|e| Error::new(ErrorKind::Other, e))?;
-        let connector =
-            Self::get_connector(&tls_type, danger_accept_invalid_cert.unwrap_or(false))?;
+        let connector = Self::get_connector(&tls_type)?;
         match timeout(
             Duration::from_millis(ms_timeout),
             connect_async_tls_with_config(request, ws_config, disable_nagle, connector),
@@ -102,44 +83,26 @@ impl WsFramedStream {
         .await?
         {
             Ok((ws_stream, _)) => {
-                upsert_tls_cache(url, tls_type, danger_accept_invalid_cert.unwrap_or(false));
+                upsert_tls_cache(url, tls_type);
                 Ok(ws_stream)
             }
-            Err(e) => match (tls_type, is_tls_type_cached, danger_accept_invalid_cert) {
-                (TlsType::Rustls, _, None) => {
-                    log::warn!(
-                            "WebSocket connection with rustls-tls failed, try accept invalid certs: {}, {:?}",
-                            url,
+            Err(e) => {
+                log::error!(
+                    "WebSocket connection failed with tls_type {:?}: {}, {:?}",
+                    tls_type,
+                    url,
+                    e
+                );
+                if let tungstenite::Error::Http(response) = &e {
+                    if response.status().is_redirection() {
+                        bail!(
+                            "WebSocket connection failed ({}). The server may not support WebSocket.",
                             e
-                        );
-                    Self::try_connect(
-                        url,
-                        ms_timeout,
-                        tls_type,
-                        is_tls_type_cached,
-                        Some(true),
-                        original_danger_accept_invalid_certs,
-                    )
-                    .await
-                }
-                _ => {
-                    log::error!(
-                        "WebSocket connection failed with tls_type {:?}: {}, {:?}",
-                        tls_type,
-                        url,
-                        e
-                    );
-                    if let tungstenite::Error::Http(response) = &e {
-                        if response.status().is_redirection() {
-                            bail!(
-                                "WebSocket connection failed ({}). The server may not support WebSocket.",
-                                e
-                            )
-                        }
+                        )
                     }
-                    bail!("WebSocket error: {}", e)
                 }
-            },
+                bail!("WebSocket error: {}", e)
+            }
         }
     }
 
