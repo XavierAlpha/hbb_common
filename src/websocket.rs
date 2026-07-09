@@ -331,10 +331,50 @@ pub fn check_ws(endpoint: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{keys, Config};
+    use crate::config::{
+        keys, Config, EXE_RENDEZVOUS_SERVER, PROD_RENDEZVOUS_SERVER, RENDEZVOUS_SERVERS,
+    };
+    use std::sync::Mutex;
+
+    static WEBSOCKET_CONFIG_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    struct WebsocketConfigGuard {
+        rendezvous_servers: Vec<String>,
+        prod_rendezvous_server: String,
+        exe_rendezvous_server: String,
+    }
+
+    impl WebsocketConfigGuard {
+        fn new() -> Self {
+            let rendezvous_servers = RENDEZVOUS_SERVERS.read().unwrap().clone();
+            let prod_rendezvous_server = PROD_RENDEZVOUS_SERVER.read().unwrap().clone();
+            let exe_rendezvous_server = EXE_RENDEZVOUS_SERVER.read().unwrap().clone();
+
+            RENDEZVOUS_SERVERS.write().unwrap().clear();
+            PROD_RENDEZVOUS_SERVER.write().unwrap().clear();
+            EXE_RENDEZVOUS_SERVER.write().unwrap().clear();
+
+            Self {
+                rendezvous_servers,
+                prod_rendezvous_server,
+                exe_rendezvous_server,
+            }
+        }
+    }
+
+    impl Drop for WebsocketConfigGuard {
+        fn drop(&mut self) {
+            *RENDEZVOUS_SERVERS.write().unwrap() = self.rendezvous_servers.clone();
+            *PROD_RENDEZVOUS_SERVER.write().unwrap() = self.prod_rendezvous_server.clone();
+            *EXE_RENDEZVOUS_SERVER.write().unwrap() = self.exe_rendezvous_server.clone();
+        }
+    }
 
     #[test]
     fn test_check_ws() {
+        let _lock = WEBSOCKET_CONFIG_TEST_LOCK.lock().unwrap();
+        let _guard = WebsocketConfigGuard::new();
+
         // enable websocket
         Config::set_option(keys::OPTION_ALLOW_WEBSOCKET.to_string(), "Y".to_string());
 
