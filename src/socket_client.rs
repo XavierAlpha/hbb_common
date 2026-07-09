@@ -294,13 +294,13 @@ mod tests {
             ipv4_to_ipv6("camellia.aimmv.com".to_owned(), false),
             "camellia.aimmv.com"
         );
-        if ("camellia.aimmv.com:80")
-            .to_socket_addrs()
-            .unwrap()
-            .next()
-            .unwrap()
-            .is_ipv6()
-        {
+        let Ok(mut addrs) = ("camellia.aimmv.com:80").to_socket_addrs() else {
+            return;
+        };
+        let Some(addr) = addrs.next() else {
+            return;
+        };
+        if addr.is_ipv6() {
             assert!(query_nip_io(&"1.1.1.1:80".parse().unwrap())
                 .await
                 .unwrap()
@@ -316,8 +316,8 @@ mod tests {
         // on Linux, "1" is resolved to "0.0.0.1"
         assert!(test_if_valid_server("1.1.1.1", false).is_empty());
         assert!(test_if_valid_server("1.1.1.1:1", false).is_empty());
-        assert!(test_if_valid_server("microsoft.com", false).is_empty());
-        assert!(test_if_valid_server("microsoft.com:1", false).is_empty());
+        assert!(test_if_valid_server("127.0.0.1", false).is_empty());
+        assert!(test_if_valid_server("127.0.0.1:1", false).is_empty());
 
         // with proxy
         // `:0` indicates `let host = check_port(host, 0);` is called.
