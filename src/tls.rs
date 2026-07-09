@@ -1,7 +1,5 @@
 use std::{collections::HashMap, sync::RwLock};
 
-use crate::config::allow_insecure_tls_fallback;
-
 #[derive(Debug, Clone, Copy)]
 pub enum TlsType {
     Plain,
@@ -10,7 +8,6 @@ pub enum TlsType {
 
 lazy_static::lazy_static! {
     static ref URL_TLS_TYPE: RwLock<HashMap<String, TlsType>> = RwLock::new(HashMap::new());
-    static ref URL_TLS_DANGER_ACCEPT_INVALID_CERTS: RwLock<HashMap<String, bool>> = RwLock::new(HashMap::new());
 }
 
 #[inline]
@@ -38,7 +35,7 @@ fn get_domain_and_port_from_url(url: &str) -> &str {
 }
 
 #[inline]
-pub fn upsert_tls_cache(url: &str, tls_type: TlsType, danger_accept_invalid_cert: bool) {
+pub fn upsert_tls_cache(url: &str, tls_type: TlsType) {
     if is_plain(url) {
         return;
     }
@@ -51,23 +48,11 @@ pub fn upsert_tls_cache(url: &str, tls_type: TlsType, danger_accept_invalid_cert
             .unwrap()
             .insert(domain_port.to_string(), tls_type);
     }
-    {
-        URL_TLS_DANGER_ACCEPT_INVALID_CERTS
-            .write()
-            .unwrap()
-            .insert(domain_port.to_string(), danger_accept_invalid_cert);
-    }
 }
 
 #[inline]
 pub fn reset_tls_cache() {
-    // Use curly braces to ensure the lock is released immediately.
-    {
-        URL_TLS_TYPE.write().unwrap().clear();
-    }
-    {
-        URL_TLS_DANGER_ACCEPT_INVALID_CERTS.write().unwrap().clear();
-    }
+    URL_TLS_TYPE.write().unwrap().clear();
 }
 
 #[inline]
@@ -79,22 +64,6 @@ pub fn get_cached_tls_type(url: &str) -> Option<TlsType> {
     URL_TLS_TYPE.read().unwrap().get(domain_port).cloned()
 }
 
-#[inline]
-pub fn get_cached_tls_accept_invalid_cert(url: &str) -> Option<bool> {
-    if !allow_insecure_tls_fallback() {
-        return Some(false);
-    }
-
-    if is_plain(url) {
-        return Some(false);
-    }
-    let domain_port = get_domain_and_port_from_url(url);
-    URL_TLS_DANGER_ACCEPT_INVALID_CERTS
-        .read()
-        .unwrap()
-        .get(domain_port)
-        .cloned()
-}
 #[cfg(test)]
 mod tests {
     use super::*;

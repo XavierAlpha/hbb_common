@@ -4,9 +4,13 @@ extern crate hbb_common;
 use hbb_common::webrtc::WebRTCStream;
 
 use anyhow::Result;
+#[cfg(feature = "webrtc")]
 use bytes::Bytes;
+#[cfg(feature = "webrtc")]
 use clap::{Arg, Command};
+#[cfg(feature = "webrtc")]
 use std::io::Write;
+#[cfg(feature = "webrtc")]
 use tokio::time::Duration;
 
 #[cfg(not(feature = "webrtc"))]
