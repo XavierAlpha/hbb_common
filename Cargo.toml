@@ -61,7 +61,6 @@ rustls-platform-verifier = "0.6"
 rustls-pki-types = "1.11"
 rustls-native-certs = "0.8"
 webpki-roots = "1.0.4"
-async-recursion = "1.1"
 webrtc = { version = "0.14.0", optional = true }
 libloading = "0.8"
 
@@ -75,7 +74,13 @@ protobuf-codegen = { version = "3.7" }
 
 [dev-dependencies]
 clap = "4.5.51"
-webrtc = "0.14.0"
+
+# Only built when the `webrtc` feature is on; keeping it here rather than as a
+# dev-dependency stops the WebRTC dependency tree from being compiled for every
+# `cargo test`.
+[[example]]
+name = "webrtc"
+required-features = ["webrtc"]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3", features = [
