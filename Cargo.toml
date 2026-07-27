@@ -25,19 +25,19 @@ serde_derive = "1.0"
 serde = "1.0"
 serde_json = "1.0"
 lazy_static = "1.5"
-confy = { git = "https://github.com/rustdesk-org/confy" }
+confy = { git = "https://github.com/rustdesk-org/confy", rev = "83db9ec19a2f97e9718aef69e4fc5611bb382479" }
 dirs-next = "2.0"
 filetime = "0.2"
 sodiumoxide = "0.2"
 regex = "1.11"
-tokio-socks = { git = "https://github.com/rustdesk-org/tokio-socks" }
+tokio-socks = { git = "https://github.com/rustdesk-org/tokio-socks", rev = "bdb9aa3de5bac41602d0742b8ef6bbc6bfebd127" }
 chrono = "0.4"
 backtrace = "0.3"
 libc = "0.2"
 toml = "0.7"
 uuid = { version = "1.16", features = ["v4"] }
 # new sysinfo issue: https://github.com/rustdesk/rustdesk/pull/6330#issuecomment-2270871442
-sysinfo = { git = "https://github.com/rustdesk-org/sysinfo", branch = "rlim_max" }
+sysinfo = { git = "https://github.com/rustdesk-org/sysinfo", rev = "90b1705d909a4902dbbbdea37ee64db17841077d" }
 thiserror = "1.0"
 httparse = "1.10"
 base64 = "0.22"
@@ -60,7 +60,7 @@ libloading = "0.8"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 mac_address = "1.1"
-default_net = { git = "https://github.com/rustdesk-org/default_net" }
+default_net = { git = "https://github.com/rustdesk-org/default_net", rev = "78f8f70cd85151a3a2c4a3230d80d5272703c02e" }
 machine-uid = "0.6.0"
 
 [build-dependencies]
