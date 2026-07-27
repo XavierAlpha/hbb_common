@@ -231,6 +231,7 @@ message HttpProxyRequest {
   string path = 2;
   repeated HeaderEntry headers = 3;
   bytes body = 4;
+  string licence_key = 5;
 }
 
 message HttpProxyResponse {
