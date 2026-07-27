@@ -249,7 +249,7 @@ where
 }
 
 pub fn is_valid_custom_id(id: &str) -> bool {
-    regex::Regex::new(r"^[a-zA-Z][\w-]{5,15}$")
+    regex::Regex::new(r"^[A-Za-z][A-Za-z0-9_-]{5,15}$")
         .unwrap()
         .is_match(id)
 }
@@ -629,5 +629,22 @@ mod test {
         assert_eq!(get_version_number("1.1.10-1"), 1001101);
         assert_eq!(get_version_number("1.1.11-1"), 1001111);
         assert_eq!(get_version_number("1.2.3"), 1002030);
+    }
+
+    #[test]
+    fn custom_id_uses_the_shared_ascii_contract() {
+        for id in ["Device01", "device_01", "device-000000001"] {
+            assert!(is_valid_custom_id(id), "{}", id);
+        }
+        for id in [
+            "123456",
+            "short",
+            "abcdefghijklmnopq",
+            "device 01",
+            "Device设备01",
+            "device/01",
+        ] {
+            assert!(!is_valid_custom_id(id), "{}", id);
+        }
     }
 }
