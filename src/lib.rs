@@ -500,7 +500,6 @@ pub struct VersionCheckResponse {
 }
 
 pub const VER_TYPE_RUSTDESK_CLIENT: &str = "rustdesk-client";
-pub const VER_TYPE_RUSTDESK_SERVER: &str = "rustdesk-server";
 
 pub fn version_check_request(typ: String) -> (VersionCheckRequest, String) {
     const URL: &str = "https://api.camellia.aimmv.com/version/latest";
