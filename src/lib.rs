@@ -167,29 +167,39 @@ impl AddrMangle {
         }
     }
 
-    pub fn decode(bytes: &[u8]) -> SocketAddr {
+    pub fn try_decode(bytes: &[u8]) -> Option<SocketAddr> {
         use std::convert::TryInto;
 
-        if bytes.len() > 16 {
-            if bytes.len() != 18 {
-                return Config::get_any_listen_addr(false);
-            }
-            let tmp: [u8; 2] = bytes[16..].try_into().unwrap_or_default();
+        if bytes.len() == 18 {
+            let tmp: [u8; 2] = bytes[16..].try_into().ok()?;
             let port = u16::from_le_bytes(tmp);
-            let tmp: [u8; 16] = bytes[..16].try_into().unwrap_or_default();
+            let tmp: [u8; 16] = bytes[..16].try_into().ok()?;
             let ip = std::net::Ipv6Addr::from(tmp);
-            return SocketAddr::new(IpAddr::V6(ip), port);
+            return Some(SocketAddr::new(IpAddr::V6(ip), port));
+        }
+        if bytes.is_empty() || bytes.len() > 16 || (bytes.len() < 16 && bytes.last() == Some(&0)) {
+            return None;
         }
         let mut padded = [0u8; 16];
         padded[..bytes.len()].copy_from_slice(bytes);
         let number = u128::from_le_bytes(padded);
         let tm = (number >> 17) & (u32::max_value() as u128);
-        let ip = (((number >> 49) - tm) as u32).to_le_bytes();
-        let port = (number & 0xFFFFFF) - (tm & 0xFFFF);
-        SocketAddr::V4(SocketAddrV4::new(
-            Ipv4Addr::new(ip[0], ip[1], ip[2], ip[3]),
+        let ip = (number >> 49).checked_sub(tm)?;
+        if ip > u32::MAX as u128 {
+            return None;
+        }
+        let port = (number & 0x1FFFF).checked_sub(tm & 0xFFFF)?;
+        if port > u16::MAX as u128 {
+            return None;
+        }
+        Some(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::from((ip as u32).to_le_bytes()),
             port as u16,
-        ))
+        )))
+    }
+
+    pub fn decode(bytes: &[u8]) -> SocketAddr {
+        Self::try_decode(bytes).unwrap_or_else(|| Config::get_any_listen_addr(false))
     }
 }
 
@@ -542,6 +552,15 @@ mod test {
 
         let addr = "[2001:db8:ff::1111]:80".parse::<SocketAddr>().unwrap();
         assert_eq!(addr, AddrMangle::decode(&AddrMangle::encode(addr)));
+    }
+
+    #[test]
+    fn malformed_mangled_addresses_are_rejected_without_panicking() {
+        assert!(AddrMangle::try_decode(&[]).is_none());
+        assert!(AddrMangle::try_decode(&[0]).is_none());
+        assert!(AddrMangle::try_decode(&[1, 0]).is_none());
+        assert!(AddrMangle::try_decode(&[0xff; 17]).is_none());
+        assert!(AddrMangle::try_decode(&[0xff; 16]).is_none());
     }
 
     #[test]
