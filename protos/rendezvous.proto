@@ -156,6 +156,7 @@ message RequestRelay {
   ControlPermissions control_permissions = 9;
   ControlledContext controlled_context = 10;
   string switch_code = 11;
+  bytes rendezvous_token = 12;
 }
 
 message RelayResponse {
@@ -171,6 +172,7 @@ message RelayResponse {
   int32 feedback = 9;
   bytes socket_addr_v6 = 10;
   int32 upnp_port = 11;
+  bytes rendezvous_token = 12;
 }
 
 message SoftwareUpdate { string url = 1; }
