@@ -2953,6 +2953,7 @@ pub mod keys {
     pub const OPTION_ALLOW_ONLY_CONN_WINDOW_OPEN: &str = "allow-only-conn-window-open";
     pub const OPTION_ALLOW_AUTO_RECORD_INCOMING: &str = "allow-auto-record-incoming";
     pub const OPTION_ALLOW_AUTO_RECORD_OUTGOING: &str = "allow-auto-record-outgoing";
+    pub const OPTION_UPLOAD_RECORDINGS_TO_SERVER: &str = "upload-recordings-to-server";
     pub const OPTION_HIDE_RECORDING_BUTTON: &str = "hide-recording-button";
     pub const OPTION_WINDOWS_SERVICE_VIDEO_SAVE_DIRECTORY: &str =
         "windows-service-video-save-directory";
@@ -3187,6 +3188,7 @@ pub mod keys {
         OPTION_AUTO_DISCONNECT_TIMEOUT,
         OPTION_ALLOW_ONLY_CONN_WINDOW_OPEN,
         OPTION_ALLOW_AUTO_RECORD_INCOMING,
+        OPTION_UPLOAD_RECORDINGS_TO_SERVER,
         OPTION_WINDOWS_SERVICE_VIDEO_SAVE_DIRECTORY,
         OPTION_ENABLE_ABR,
         OPTION_ALLOW_REMOVE_WALLPAPER,
