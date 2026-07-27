@@ -64,6 +64,7 @@ message PunchHole {
   bytes socket_addr_v6 = 7;
   ControlPermissions control_permissions = 8;
   ControlledContext controlled_context = 9;
+  bytes rendezvous_token = 10;
 }
 
 message TestNatRequest {
@@ -90,6 +91,7 @@ message PunchHoleSent {
   string version = 5;
   int32 upnp_port = 6;
   bytes socket_addr_v6 = 7;
+  bytes rendezvous_token = 8;
 }
 
 message RegisterPk {
@@ -183,6 +185,7 @@ message FetchLocalAddr {
   bytes socket_addr_v6 = 3;
   ControlPermissions control_permissions = 4;
   ControlledContext controlled_context = 5;
+  bytes rendezvous_token = 6;
 }
 
 message LocalAddr {
@@ -192,6 +195,7 @@ message LocalAddr {
   string id = 4;
   string version = 5;
   bytes socket_addr_v6 = 6;
+  bytes rendezvous_token = 7;
 }
 
 message PeerDiscovery {
